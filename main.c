@@ -95,7 +95,25 @@ Graph *get_inputs(char **argv, int *nv, int *nw) {
     if (t != g->nodes[g->num_nodes - 1]->id) {
       // create new node
       n = create_node(t);
+      n->num_edges = 1;
       g->num_nodes++;
+      Node** temp = realloc(g->nodes, sizeof(Node*) * g->num_nodes);
+      if (temp == NULL) {
+        fprintf(stderr, "realloc node failed");
+	free(g);
+	exit(1);
+      }
+      g->nodes = temp;
+      g->nodes[g->num_nodes - 1] = n;
+    } else {
+      g->nodes[g->num_nodes - 1]->num_edges++;
+      Edge** temp = realloc(g->nodes[g->num_nodes-1]->edges, sizeof(Edge*) * g->nodes[g->num_nodes - 1]->num_edges);
+      if (temp == NULL) {
+        fprintf(stderr, "realloc edge failed");
+	free(g);
+	exit(1);
+      }
+      g->nodes[g->num_nodes - 1]->edges = temp;
     }
     if (fscanf(f, "%d ", &t) != 1) {
       fprintf(stderr, "additional edge breaking");
@@ -114,7 +132,7 @@ Graph *get_inputs(char **argv, int *nv, int *nw) {
       exit(1);
     }
     e->weights[*nw - 1] = t;
-    n->edges[n->num_edges++ - 1] = e;
+    g->nodes[g->num_nodes - 1]->edges[g->nodes[g->num_nodes - 1]->num_edges - 1] = e;
   }
 
   fclose(f);
