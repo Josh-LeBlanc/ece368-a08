@@ -81,7 +81,11 @@ Graph *get_inputs(char **argv, int *nv, int *nw) {
   g->nodes[g->num_nodes++] = n;
 
   // read rest of nodes
-  for (int i = 0; i < *nv - 1; i++) {
+  while (1) {
+    // check for EOF
+    if (feof(f)) {
+      break;
+    }
     // id
     if (fscanf(f, "%d ", &t) != 1) {
       fprintf(stderr, "rest node id read failed");
