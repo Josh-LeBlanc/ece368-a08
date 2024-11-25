@@ -26,15 +26,30 @@ Graph *get_inputs(char **, int *, int *);
 Node *create_node(int);
 Edge *create_edge(int, int);
 void print_graph(Graph *, int);
-void dijkstra(int, int, int *);
+void dijkstra(int, int, int, int *, Graph *);
+void dequeue(HeapNode *, int);
+void update(HeapNode *, int);
+
+int x = 0;
 
 int main(int argc, char **argv) {
   int nv = 0; // num vertices
   int nw = 0; // num weights per edge
 
   Graph *g = get_inputs(argv, &nv, &nw);
-  int heap_index[nv];
-  print_graph(g, nw);
+  int *heap_index = (int *)malloc(sizeof(int) * nv);
+  // print_graph(g, nw);
+  int source, dest;
+  printf("input source dest: ");
+  scanf("%d %d", &source, &dest);
+  printf("hello: %d %d\n", source, dest);
+  dijkstra(source, nv, nw, heap_index, g);
+
+  printf("print heap index:\n\n");
+  for (int i = 0; i < nv; i++) {
+    printf("%d\n", heap_index[i]);
+  }
+
   assert(g == NULL); // free the graph and all nodes
   return 0;
 }
@@ -178,9 +193,9 @@ void print_graph(Graph *g, int nw) {
   }
 }
 
-void dijkstra(int source, int nv, int *heap_index) {
+void dijkstra(int source, int nv, int nw, int *heap_index, Graph *g) {
   // taken from lecture slides
-  HeapNode heap[nv];
+  HeapNode *heap = (HeapNode *)malloc(sizeof(HeapNode) * nv);
   int n = nv;
 
   for (int i = 0; i < nv; i++) {
@@ -189,5 +204,72 @@ void dijkstra(int source, int nv, int *heap_index) {
     heap[i].predecessor = -1;
     heap_index[i] = i;
   }
+
   heap[0].distance = 0;
+  heap[0].label = source;
+  heap[source].label = 0;
+  heap_index[0] = source;
+  heap_index[source] = 0;
+
+  while (n != 0) {
+    dequeue(heap, n - 1);
+    n--;
+
+    int u = heap[n].label;
+    x = (x + 1) % nw;
+
+    int j = 0;
+    Node *v = g->nodes[g->nodes[u]->edges[j++]->dest];
+    while (1) { //( v != NULL) {
+      if ((heap_index[v->id] < n) &&
+          heap[heap_index[v->id]].distance >
+              heap[heap_index[u]].distance +
+                  g->nodes[u]->edges[j - 1]->weights[x]) {
+        heap[heap_index[v->id]].distance =
+            heap[heap_index[u]].distance +
+            g->nodes[u]->edges[j - 1]->weights[x];
+        heap[heap_index[v->id]].predecessor = u;
+        update(heap, heap_index[v->id]);
+      }
+      // v = v->next;
+      if (j == g->nodes[u]->num_edges) {
+        break;
+      } else {
+        v = g->nodes[g->nodes[u]->edges[j++]->dest];
+      }
+    }
+  }
+}
+
+void dequeue(HeapNode *heap, int n) {
+  HeapNode temp = heap[n];
+  heap[n] = heap[0];
+  heap[0] = temp;
+
+  n--;
+
+  int i = 0, j;
+  while ((j = 2 * i + 1) <= n) {
+    if (j < n && heap[j].label < heap[j + 1].label) {
+      j = j + 1;
+    }
+    if (temp.label >= heap[j].label) {
+      break;
+    } else {
+      heap[i] = heap[j];
+      i = j;
+    }
+  }
+  heap[i] = temp;
+}
+
+void update(HeapNode *heap, int i) {
+  HeapNode temp = heap[i];
+  int j = i;
+
+  while (j > 0 && heap[(j - 1) / 2].label < temp.label) {
+    heap[j] = heap[(j - 1) / 2];
+    j = (j - 1) / 2;
+  }
+  heap[j] = temp;
 }
