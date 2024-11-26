@@ -20,8 +20,21 @@ typedef struct {
 typedef struct {
   int label;
   int distance;
-  int predecessor;
+  int t;
+  int* predecessors;
 } HeapNode;
+typedef struct Qnode {
+  int id;
+  int pred;
+  int d;
+  int t;
+  struct Qnode* next;
+  struct Qnode* prev;
+} Qnode;
+typedef struct {
+  Qnode* head;
+  Qnode* tail;
+} Queue;
 
 Graph *get_inputs(char **, int *, int *);
 Node *create_node(int);
@@ -30,7 +43,10 @@ void print_graph(Graph *, int);
 HeapNode* dijkstra(int, int, int, int *, Graph *);
 void dequeue(HeapNode *, int, int *);
 void update(HeapNode *, int, int *);
-int get_edge_num();
+Queue* create_queue(int);
+Qnode* dq(Queue*);
+void nq(Queue*, Qnode*);
+void print_path(HeapNode*, int, int, int, int);
 
 int x = 0;
 
@@ -44,7 +60,7 @@ int main(int argc, char **argv) {
   // print_graph(g, nw);
   int psource = -1, source = -2, dest = -1;
   while (1) {
-    printf("input source dest: ");
+    // printf("input source dest: ");
     if (scanf("%d %d", &source, &dest) != 2) {
       break;
       fprintf(stderr, "error, please enter source and destination in the format 'source dest':");
@@ -54,11 +70,8 @@ int main(int argc, char **argv) {
       heap = dijkstra(source, nv, nw, heap_index, g);
     }
 
-    for (int i = 0; i < nv; i++) {
-      if (heap[i].label == dest) {
-        printf("dest dist pred: %d %d\n", heap[i].distance, heap[i].predecessor);
-      }
-    }
+    print_path(heap, source, dest, nw, heap[dest].t);
+    printf("\n");
     psource = source;
   }
 
@@ -164,8 +177,9 @@ void print_graph(Graph *g, int nw) {
   }
 }
 
+/*
 HeapNode* dijkstra(int source, int nv, int nw, int *heap_index, Graph *g) {
-  // taken from lecture slides
+  // taken from lecture slides. horrible idea
   HeapNode *heap = (HeapNode *)malloc(sizeof(HeapNode) * nv);
   int n = nv;
   int edge_num = 0;
@@ -219,7 +233,52 @@ HeapNode* dijkstra(int source, int nv, int nw, int *heap_index, Graph *g) {
   }
   return heap;
 }
+*/
 
+HeapNode* dijkstra(int source, int nv, int nw, int *heap_index, Graph *g) {
+  // set up heap and heap_index
+  HeapNode *heap = (HeapNode *)malloc(sizeof(HeapNode) * nv);
+  for (int i = 0; i < nv; i++) {
+    heap[i].label = i;
+    heap[i].distance = INT_MAX;
+    heap[i].predecessors = (int*)malloc(sizeof(int) * nw);
+    heap[i].t = -1;
+    for (int j = 0; j < nw; j++) {
+      heap[i].predecessors[j] = -1;
+    }
+    heap_index[i] = i;
+  }
+
+  Queue* q = create_queue(source);
+
+  // nq all reachable nodes
+  while (q->head != NULL) {
+    for(int i = 0; i < g->nodes[q->head->id]->num_edges; i++) {
+      Qnode* tqn = (Qnode*)malloc(sizeof(Qnode));
+      tqn->id = g->nodes[q->head->id]->edges[i]->dest;
+      tqn->t = q->head->t + 1;
+      tqn->d = q->head->d + g->nodes[q->head->id]->edges[i]->weights[q->head->t % nw];
+      tqn->pred = q->head->id;
+      if (tqn->d < heap[tqn->id].distance) {
+        heap[heap_index[tqn->id]].predecessors[tqn->t % nw] = q->head->id;
+      }
+      nq(q, tqn);
+    }
+    // dq
+    Qnode* qn = dq(q);
+    int temp = qn->pred;
+    qn->pred = temp * 1;
+    if (heap[heap_index[qn->id]].distance > qn->d) {
+      heap[heap_index[qn->id]].distance = qn->d;
+      // heap[heap_index[qn->id]].predecessors[qn->t % nw] = qn->pred;
+      heap[heap_index[qn->id]].t = qn->t;
+    }
+  }
+  free(q);
+  return heap;
+}
+
+/*
 void dequeue(HeapNode *heap, int n, int* heap_index) {
   HeapNode temp = heap[n];
   heap_index[heap[0].label] = n;
@@ -245,7 +304,9 @@ void dequeue(HeapNode *heap, int n, int* heap_index) {
   heap_index[temp.label] = i;
   heap[i] = temp;
 }
+*/
 
+/*
 void update(HeapNode *heap, int i, int* heap_index) {
   HeapNode temp = heap[i];
   int j = i;
@@ -257,11 +318,9 @@ void update(HeapNode *heap, int i, int* heap_index) {
   heap_index[temp.label] = j;
   heap[j] = temp;
 }
+*/
 
-int get_edge_num() {
-  return 0;
-}
-
+/*
 int node_in_graph(Graph* g, int n) {
   for (int i = 0; i < g->num_nodes; i++) {
     if (g->nodes[i]->id == n) {
@@ -269,4 +328,49 @@ int node_in_graph(Graph* g, int n) {
     }
   }
   return 1;
+}
+*/
+
+Queue* create_queue(int src) {
+  Queue* q = (Queue*)malloc(sizeof(Queue));
+  Qnode* qn = (Qnode*)malloc(sizeof(Qnode));
+  qn->id = src;
+  qn->next = NULL;
+  qn->prev = NULL;
+  qn->t = 0;
+  qn->d = 0;
+  q->head = qn;
+  q->tail = qn;
+  return q;
+}
+
+Qnode* dq (Queue* q) {
+  if (q->tail == NULL) {
+    fprintf(stderr, "dq from empty q");
+    exit(1);
+  }
+  Qnode* temp = q->head;
+  if (q->tail == q->head) {
+    q->tail = NULL;
+    q->head = NULL;
+  }
+  if (q->head != NULL) {
+    q->head = q->head->next;
+  }
+  return temp;
+}
+
+void nq (Queue* q, Qnode* qn) {
+  q->tail->next = qn;
+  qn->prev = q->tail;
+  q->tail = qn;
+}
+
+void print_path(HeapNode* heap, int source, int dest, int nw, int t) {
+  if (dest == source) {
+    printf("%d ", dest);
+    return;
+  }
+  print_path(heap, source, heap[dest].predecessors[t % nw], nw, t - 1);
+  printf("%d ", dest);
 }
