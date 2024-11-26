@@ -48,8 +48,6 @@ Qnode* dq(Queue*);
 void nq(Queue*, Qnode*);
 void print_path(HeapNode*, int, int, int, int);
 
-int x = 0;
-
 int main(int argc, char **argv) {
   int nv = 0; // num vertices
   int nw = 0; // num weights per edge
@@ -89,13 +87,13 @@ int main(int argc, char **argv) {
       free(g->nodes[i]->edges[j]->weights);
       free(g->nodes[i]->edges[j]);
     }
+    free(g->nodes[i]->edges);
     free(g->nodes[i]);
     free(heap[i].predecessors);
   }
   free(heap);
   free(g->nodes);
   free(g);
-  assert(g == NULL); // free the graph and all nodes
   return 0;
 }
 
@@ -125,11 +123,15 @@ Graph *get_inputs(char **argv, int *nv, int *nw) {
   while (fscanf(f, "%d %d", &t, &t1) != EOF) {
     // if node not in graph, create it
     if (g->nodes[t]->id == -1) {
+      free(g->nodes[t]->edges);
+      free(g->nodes[t]);
       g->nodes[t] = create_node(t);
       g->num_nodes++;
     }
     // if node 2 not in graph, create it
     if (g->nodes[t1]->id == -1) {
+      free(g->nodes[t1]->edges);
+      free(g->nodes[t1]);
       g->nodes[t1] = create_node(t1);
       g->num_nodes++;
     }
