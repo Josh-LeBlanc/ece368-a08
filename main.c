@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 
   printf("print distances:\n\n");
   for (int i = 0; i < nv; i++) {
-    printf("%d\n", heap[i].distance);
+    printf("node: %d, distance: %d\n", heap[i].label, heap[i].distance);
   }
 
   assert(g == NULL); // free the graph and all nodes
@@ -162,6 +162,7 @@ HeapNode* dijkstra(int source, int nv, int nw, int *heap_index, Graph *g) {
   int n = nv;
   int edge_num = 0;
   int a;
+  x = nw - 1;
 
   for (int i = 0; i < nv; i++) {
     heap[i].label = i;
@@ -190,8 +191,7 @@ HeapNode* dijkstra(int source, int nv, int nw, int *heap_index, Graph *g) {
     Node *v = g->nodes[g->nodes[u]->edges[edge_num]->dest];
     edge_num += 1;
     while (1) { //( v != NULL) {
-      if ((heap_index[v->id] < n) &&
-          heap[heap_index[v->id]].distance >
+      if (heap[heap_index[v->id]].distance >
               heap[heap_index[u]].distance +
                   g->nodes[u]->edges[edge_num - 1]->weights[x]) {
         heap[heap_index[v->id]].distance =
