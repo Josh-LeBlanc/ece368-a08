@@ -430,14 +430,20 @@ NGraph* create_new_graph(Graph* g, int nv, int nw) {
 }
 
 void add_edges(NEdge* ne, Node* n, Graph* g, int t, int nw) {
+  if (n->num_edges == 0) {
+    ne->num_edges = 0;
+    return;
+  }
   ne->num_edges = n->num_edges;
-  ne->edges = (NEdge**)malloc(sizeof(NEdge));
+  ne->edges = (NEdge**)malloc(sizeof(NEdge) * n->num_edges);
   for (int i = 0; i < n->num_edges; i++) {
     NEdge* new = (NEdge*)malloc(sizeof(NEdge));
     new->id = n->edges[i]->dest;
-    new->w = n->edges[i]->weights[t%nw];
+    new->w = n->edges[i]->weights[t];
     ne->edges[i] = new;
-    add_edges(ne->edges[i], g->nodes[n->edges[i]->dest], g, t+1, nw);
+    if (g->nodes[n->edges[i]->dest]->num_edges > 0) {
+      add_edges(ne->edges[i], g->nodes[n->edges[i]->dest], g, (t+1)%nw, nw);
+    }
   }
 }
 
