@@ -3,6 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef struct NEdge {
+  int id;
+  int w;
+  struct NEdge** edges;
+  int num_edges;
+} NEdge;
+typedef struct NGraph {
+  NEdge** sources;
+  int num_sources;
+} NGraph;
 typedef struct {
   int dest;
   int *weights;
@@ -47,6 +57,9 @@ Queue* create_queue(int);
 Qnode* dq(Queue*);
 void nq(Queue*, Qnode*);
 void print_path(HeapNode*, int, int, int, int);
+NGraph* create_new_graph(Graph*, int, int);
+void add_edges(NEdge*, Node*, Graph*, int, int);
+void print_new_graph(NGraph*);
 
 int main(int argc, char **argv) {
   int nv = 0; // num vertices
@@ -54,6 +67,9 @@ int main(int argc, char **argv) {
   HeapNode* heap = 0;
 
   Graph *g = get_inputs(argv, &nv, &nw);
+  NGraph* ng = create_new_graph(g, nv, nw);
+  print_new_graph(ng);
+  exit(1);
   int *heap_index = (int *)malloc(sizeof(int) * nv);
   // print_graph(g, nw);
   int psource = -1, source = -2, dest = -1;
@@ -396,4 +412,34 @@ void print_path(HeapNode* heap, int source, int dest, int nw, int t) {
   }
   print_path(heap, source, heap[dest].predecessors[t % nw], nw, t - 1);
   printf("%d ", dest);
+}
+
+NGraph* create_new_graph(Graph* g, int nv, int nw) {
+  // for each node in the graph we will start from 0 and travers
+  NGraph* ng = (NGraph*)malloc(sizeof(NGraph));
+  ng->num_sources = nv;
+  ng->sources = (NEdge**)malloc(sizeof(NEdge) * nv);
+  for (int i = 0; i < g->num_nodes; i++) {
+    int t = 0;   
+    ng->sources[i]->w = 0;
+    ng->sources[i]->id = i;
+    add_edges(ng->sources[i], g->nodes[i], g, t, nw);
+  }
+  return ng;
+}
+
+void add_edges(NEdge* ne, Node* n, Graph* g, int t, int nw) {
+  ne->num_edges = n->num_edges;
+  ne->edges = (NEdge**)malloc(sizeof(NEdge*) * n->num_edges);
+  for (int i = 0; i < n->num_edges; i++) {
+    NEdge* new = (NEdge*)malloc(sizeof(NEdge));
+    new->id = n->edges[i]->dest;
+    new->w = n->edges[i]->weights[t%nw];
+    ne->edges[i] = new;
+    add_edges(ne->edges[i], g->nodes[n->edges[i]->dest], g, t+1, nw);
+  }
+}
+
+void print_new_graph(NGraph* ng) {
+  printf("%d\n", ng->sources[0]->id);
 }
