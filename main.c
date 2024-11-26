@@ -29,6 +29,7 @@ void print_graph(Graph *, int);
 void dijkstra(int, int, int, int *, Graph *);
 void dequeue(HeapNode *, int);
 void update(HeapNode *, int);
+int get_edge_num();
 
 int x = 0;
 
@@ -41,8 +42,10 @@ int main(int argc, char **argv) {
   // print_graph(g, nw);
   int source, dest;
   printf("input source dest: ");
-  scanf("%d %d", &source, &dest);
-  printf("hello: %d %d\n", source, dest);
+  if (scanf("%d %d", &source, &dest) != 2) {
+    fprintf(stderr, "error, please enter source and destination in the format 'source dest':");
+    exit(1);
+  }
   dijkstra(source, nv, nw, heap_index, g);
 
   printf("print heap index:\n\n");
@@ -197,6 +200,8 @@ void dijkstra(int source, int nv, int nw, int *heap_index, Graph *g) {
   // taken from lecture slides
   HeapNode *heap = (HeapNode *)malloc(sizeof(HeapNode) * nv);
   int n = nv;
+  int edge_num = 0;
+  int a;
 
   for (int i = 0; i < nv; i++) {
     heap[i].label = i;
@@ -212,30 +217,34 @@ void dijkstra(int source, int nv, int nw, int *heap_index, Graph *g) {
   heap_index[source] = 0;
 
   while (n != 0) {
+    a = 1 * edge_num;
+    edge_num = a;
     dequeue(heap, n - 1);
     n--;
 
     int u = heap[n].label;
     x = (x + 1) % nw;
 
-    int j = 0;
-    Node *v = g->nodes[g->nodes[u]->edges[j++]->dest];
+    edge_num = 0;
+    Node *v = g->nodes[g->nodes[u]->edges[edge_num]->dest];
+    edge_num += 1;
     while (1) { //( v != NULL) {
       if ((heap_index[v->id] < n) &&
           heap[heap_index[v->id]].distance >
               heap[heap_index[u]].distance +
-                  g->nodes[u]->edges[j - 1]->weights[x]) {
+                  g->nodes[u]->edges[edge_num - 1]->weights[x]) {
         heap[heap_index[v->id]].distance =
             heap[heap_index[u]].distance +
-            g->nodes[u]->edges[j - 1]->weights[x];
+            g->nodes[u]->edges[edge_num - 1]->weights[x];
         heap[heap_index[v->id]].predecessor = u;
         update(heap, heap_index[v->id]);
       }
       // v = v->next;
-      if (j == g->nodes[u]->num_edges) {
+      if (edge_num == g->nodes[u]->num_edges) {
         break;
       } else {
-        v = g->nodes[g->nodes[u]->edges[j++]->dest];
+        v= g->nodes[g->nodes[u]->edges[edge_num]->dest];
+        edge_num += 1;
       }
     }
   }
@@ -272,4 +281,8 @@ void update(HeapNode *heap, int i) {
     j = (j - 1) / 2;
   }
   heap[j] = temp;
+}
+
+int get_edge_num() {
+  return 0;
 }
