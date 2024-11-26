@@ -37,21 +37,29 @@ int x = 0;
 int main(int argc, char **argv) {
   int nv = 0; // num vertices
   int nw = 0; // num weights per edge
+  HeapNode* heap = 0;
 
   Graph *g = get_inputs(argv, &nv, &nw);
   int *heap_index = (int *)malloc(sizeof(int) * nv);
   // print_graph(g, nw);
-  int source, dest;
-  printf("input source dest: ");
-  if (scanf("%d %d", &source, &dest) != 2) {
-    fprintf(stderr, "error, please enter source and destination in the format 'source dest':");
-    exit(1);
-  }
-  HeapNode* heap = dijkstra(source, nv, nw, heap_index, g);
+  int psource = -1, source = -2, dest = -1;
+  while (1) {
+    printf("input source dest: ");
+    if (scanf("%d %d", &source, &dest) != 2) {
+      break;
+      fprintf(stderr, "error, please enter source and destination in the format 'source dest':");
+      exit(1);
+    }
+    if (source != psource) {
+      heap = dijkstra(source, nv, nw, heap_index, g);
+    }
 
-  printf("print distances:\n\n");
-  for (int i = 0; i < nv; i++) {
-    printf("node: %d, distance: %d\n", heap[i].label, heap[i].distance);
+    for (int i = 0; i < nv; i++) {
+      if (heap[i].label == dest) {
+        printf("dest dist pred: %d %d\n", heap[i].distance, heap[i].predecessor);
+      }
+    }
+    psource = source;
   }
 
   assert(g == NULL); // free the graph and all nodes
