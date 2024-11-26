@@ -11,3 +11,7 @@ dbgn: main.c
 test: main.c
 	gcc -O3 -std=c99 -Wall -Wshadow -Wvla -pedantic *.c -o a8
 	./a8 testcases/ex1
+
+mem:
+	gcc -O3 -std=c99 -Wall -Wshadow -Wvla -pedantic *.c -o a8
+	valgrind --tool=memcheck --leak-check=full --verbose ./a8 testcases/2

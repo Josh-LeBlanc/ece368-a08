@@ -67,6 +67,12 @@ int main(int argc, char **argv) {
       exit(1);
     }
     if (source != psource) {
+      if (heap) {
+        for (int i = 0; i < nv; i++) {
+          free(heap[i].predecessors);
+        }
+        free(heap);
+      }
       heap = dijkstra(source, nv, nw, heap_index, g);
     }
 
@@ -75,6 +81,20 @@ int main(int argc, char **argv) {
     psource = source;
   }
 
+  // free everything
+
+  free(heap_index);
+  for (int i = 0; i < g->num_nodes; i++) {
+    for (int j = 0; j < g->nodes[i]->num_edges; j++) {
+      free(g->nodes[i]->edges[j]->weights);
+      free(g->nodes[i]->edges[j]);
+    }
+    free(g->nodes[i]);
+    free(heap[i].predecessors);
+  }
+  free(heap);
+  free(g->nodes);
+  free(g);
   assert(g == NULL); // free the graph and all nodes
   return 0;
 }
@@ -273,6 +293,7 @@ HeapNode* dijkstra(int source, int nv, int nw, int *heap_index, Graph *g) {
       // heap[heap_index[qn->id]].predecessors[qn->t % nw] = qn->pred;
       heap[heap_index[qn->id]].t = qn->t;
     }
+    free(qn);
   }
   free(q);
   return heap;
