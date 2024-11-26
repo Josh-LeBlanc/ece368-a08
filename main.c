@@ -421,6 +421,7 @@ NGraph* create_new_graph(Graph* g, int nv, int nw) {
   ng->sources = (NEdge**)malloc(sizeof(NEdge) * nv);
   for (int i = 0; i < g->num_nodes; i++) {
     int t = 0;   
+    ng->sources[i] = (NEdge*)malloc(sizeof(NEdge));
     ng->sources[i]->w = 0;
     ng->sources[i]->id = i;
     add_edges(ng->sources[i], g->nodes[i], g, t, nw);
@@ -430,7 +431,7 @@ NGraph* create_new_graph(Graph* g, int nv, int nw) {
 
 void add_edges(NEdge* ne, Node* n, Graph* g, int t, int nw) {
   ne->num_edges = n->num_edges;
-  ne->edges = (NEdge**)malloc(sizeof(NEdge*) * n->num_edges);
+  ne->edges = (NEdge**)malloc(sizeof(NEdge));
   for (int i = 0; i < n->num_edges; i++) {
     NEdge* new = (NEdge*)malloc(sizeof(NEdge));
     new->id = n->edges[i]->dest;
