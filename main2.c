@@ -311,7 +311,7 @@ void dequeue(hnode* arr, int n, int* heap_index) { //n is the last index
 
 void enqueue(hnode* arr, int i, int* heap_index, int n) { // upward heapify
   hnode temp; // new element at index i
-  while (i < (n - 1) && arr[i].distance > arr[i+1].distance) {
+  while (i < (n) && arr[i].distance > arr[i+1].distance) {
     temp = arr[i];
     heap_index[arr[i+1].label] = i;
     heap_index[arr[i].label] = i+1;
