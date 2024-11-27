@@ -28,7 +28,7 @@ typedef struct {
 } Graph;
 typedef struct hnode {
   int label;
-  int distance;
+  long long distance;
   int predecessor;
 } hnode;
 
@@ -332,7 +332,7 @@ void enqueue(hnode* arr, int i, int* heap_index, int n) { // upward heapify
 void print_heap(hnode* heap, int size) {
   printf("print heap:\n");
   for (int i = 0; i < size; i++) {
-    printf("label: %d, distance: %d, predecessor: %d\n", heap[i].label, heap[i].distance, heap[i].predecessor);
+    printf("label: %d, distance: %lld, predecessor: %d\n", heap[i].label, heap[i].distance, heap[i].predecessor);
   }
   printf("\n\n");
 }
