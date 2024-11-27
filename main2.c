@@ -4,10 +4,10 @@
 
 typedef struct edge {
   int w;
-  int d;
+  unsigned short d;
 } edge;
 typedef struct gnode {
-  int id;
+  unsigned short id;
   int t;
   int num_edges;
   edge** edges;
@@ -27,9 +27,9 @@ typedef struct {
   int num_nodes;
 } Graph;
 typedef struct hnode {
-  int label;
+  unsigned short label;
   long long distance;
-  int predecessor;
+  short predecessor;
 } hnode;
 
 Graph* get_inputs(char**, int*, int*);
