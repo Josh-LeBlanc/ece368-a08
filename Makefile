@@ -27,3 +27,7 @@ dbg2: main2.c
 dbgn2: main2.c
 	gcc -g -std=c99 -Wall -Wshadow -Wvla -pedantic main2.c -o a8
 	gdb a8
+
+mem2: main2
+	gcc -O3 -std=c99 -Wall -Wshadow -Wvla -pedantic main2.c -o a8
+	valgrind --tool=memcheck --leak-check=full --verbose ./a8 testcases/ex1
