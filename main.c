@@ -45,6 +45,11 @@ typedef struct {
   Qnode* head;
   Qnode* tail;
 } Queue;
+typedef struct gnode {
+  int id;
+  int t;
+  struct gnode** touches;
+} gnode;
 
 Graph *get_inputs(char **, int *, int *);
 Node *create_node(int);
@@ -58,6 +63,7 @@ Qnode* dq(Queue*);
 void nq(Queue*, Qnode*);
 void print_path(HeapNode*, int, int, int, int);
 NGraph* create_new_graph(Graph*, int, int);
+gnode** create_new_new_graph(Graph*, int, int);
 void add_edges(NEdge*, Node*, Graph*, int, int);
 void print_new_graph(NGraph*);
 
@@ -469,4 +475,16 @@ void add_edges(NEdge* ne, Node* n, Graph* g, int t, int nw) {
 
 void print_new_graph(NGraph* ng) {
   printf("%d\n", ng->sources[0]->id);
+}
+
+gnode** create_new_new_graph(Graph* g, int nv, int nw) {
+  gnode** nng = (gnode**)malloc(sizeof(gnode) * nv * nw);
+
+  for (int i = 0; i < nv; i++) {
+    for (int j = 0; j < nw; j++) {
+      nng[2*i+j] = (gnode*)malloc(sizeof(gnode));
+      nng[2*i+j]->id = i;
+      nng[2*i
+    }
+  }
 }
