@@ -41,6 +41,9 @@ void print_graph(Graph*, int);
 void dijkstra(gnode**, int, int);
 void dequeue(hnode*, int, int*);
 void enqueue(hnode*, int, int*, int);
+void print_heap(hnode*, int);
+void print_path(hnode*, int*, int, int, int);
+void print_heap_index(int*, int);
 
 int main(int argc, char** argv) {
   int nv = 0, nw = 0;
@@ -156,7 +159,7 @@ gnode** create_new_graph(Graph* g, int nv, int nw) {
       nng[nw*i+j]->edges = (edge**)malloc(sizeof(edge) * g->nodes[i]->num_edges);
       for (int k = 0; k < g->nodes[i]->num_edges; k++) {
         nng[nw*i+j]->edges[k] = (edge*)malloc(sizeof(edge));
-        nng[nw*i+j]->edges[k]->d = g->nodes[i]->edges[k]->dest;
+        nng[nw*i+j]->edges[k]->d = g->nodes[i]->edges[k]->dest * nw + ((j + 1) % nw);
         nng[nw*i+j]->edges[k]->w = g->nodes[i]->edges[k]->weights[j];
       }
     }
@@ -209,10 +212,14 @@ void dijkstra(gnode** nng, int nv, int nw) {
     heap[source].label = 0;
     heap_index[0] = source;
     heap_index[source] = 0;
+    print_heap_index(heap_index, nv * nw);
+    print_heap(heap, nv * nw);
 
     while (n != 0) {
       int num_edge = 0;
       dequeue(heap, n-1, heap_index);
+      print_heap_index(heap_index, nv * nw);
+      print_heap(heap, nv * nw);
       n--;
 
       int u = heap[n].label;
@@ -226,11 +233,25 @@ void dijkstra(gnode** nng, int nv, int nw) {
           heap[heap_index[v->d]].distance = heap[heap_index[u]].distance + v->w;
           heap[heap_index[v->d]].predecessor = u;
           enqueue(heap, heap_index[v->d], heap_index, n);
+          print_heap_index(heap_index, nv * nw);
+          print_heap(heap, nv * nw);
         }
         if (num_edge == nng[u]->num_edges) { break; }
         else { v = nng[u]->edges[num_edge++]; }
       }
     }
+    // print_heap(heap, nv * nw);
+    int min_dist = INT_MAX;
+    hnode path = {0};
+    for (int i = 0; i < nw; i++) {
+      if (heap[heap_index[dest*nw+i]].distance < min_dist) {
+        min_dist = heap[heap_index[dest*nw+i]].distance;
+        path = heap[heap_index[dest*nw+i]];
+      }
+    }
+    print_heap_index(heap_index, nv * nw);
+    print_heap(heap, nv * nw);
+    print_path(heap, heap_index, heap_index[path.label], path.label, nw);
     free(heap_index);
     free(heap);
   }
@@ -246,7 +267,18 @@ void dequeue(hnode* arr, int n, int* heap_index) { //n is the last index
   arr[n] = arr[0];
   arr[0] = temp;
   n--; //decrease the heap size
+  
+  int i = 0;
+  while (arr[i].distance > arr[i+1].distance) {
+    temp = arr[i];
+    heap_index[arr[i+1].label] = i;
+    heap_index[temp.label] = i+1;
+    arr[i] = arr[i+1];
+    arr[i+1] = temp;
+    i++;
+  }
 
+  /*
   int i = 0, j;
   while ((j = 2*i+1) <= n) { //left child exists?
     if (j < n && arr[j].distance < arr[j+1].distance) {// binary search
@@ -261,6 +293,8 @@ void dequeue(hnode* arr, int n, int* heap_index) { //n is the last index
   }
   heap_index[temp.label] = i;
   arr[i] = temp;
+  */
+
 }
 
 void enqueue(hnode* arr, int i, int* heap_index, int n) { // upward heapify
@@ -280,5 +314,33 @@ void enqueue(hnode* arr, int i, int* heap_index, int n) { // upward heapify
     arr[i] = arr[i-1];
     arr[i-1] = temp;
     i--;
+  }
+}
+
+void print_heap(hnode* heap, int size) {
+  printf("print heap:\n");
+  for (int i = 0; i < size; i++) {
+    printf("label: %d, distance: %d, predecessor: %d\n", heap[i].label, heap[i].distance, heap[i].predecessor);
+  }
+  printf("\n\n");
+}
+
+void print_heap_index(int* hi, int size) {
+  printf("print index:\n");
+  for (int i = 0; i < size; i++) {
+    printf("label: %d, index: %d\n", i, hi[i]);
+  }
+}
+
+void print_path(hnode* heap, int* heap_index, int p, int dest, int nw) {
+  if (heap[p].predecessor == -1) {
+    printf("%d ", heap[p].label/nw);
+    return;
+  }
+  print_path(heap, heap_index, heap_index[heap[p].predecessor], dest, nw);
+  if (heap[p].label == dest) {
+    printf("%d\n", heap[p].label/nw);
+  } else {
+    printf("%d ", heap[p].label/nw);
   }
 }
